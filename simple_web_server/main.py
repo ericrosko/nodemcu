@@ -4,16 +4,19 @@ except:
     import socket
 
 response_404 = """HTTP/1.0 404 NOT FOUND
+Content-Type: text/html
 
 <h1>404 Not Found</h1>
 """
 
 response_500 = """HTTP/1.0 500 INTERNAL SERVER ERROR
+Content-Type: text/html
 
 <h1>500 Internal Server Error</h1>
 """
 
 response_template = """HTTP/1.0 200 OK
+Content-Type: text/html
 
 %s
 """
