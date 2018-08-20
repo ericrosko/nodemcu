@@ -38,15 +38,61 @@ def time():
 
     return response_template % body
 
+
 def dummy():
-    body = "This is a dummy endpoint"
+    body = "This is a dummy endpoint."
 
     return response_template % body
 
+
+def light_on():
+    led = machine.Pin(5, machine.Pin.OUT)
+    led.value(1)
+    body = """<html>
+<body>
+<h1>LED</h1>
+<p>%s</p>
+</body>
+</html>
+""" % "LED value 1 ON"
+    return response_template % body
+
+
+def light_off():
+    led = machine.Pin(5, machine.Pin.OUT)
+    led.value(0)
+    body = """<html>
+<body>
+<h1>LED</h1>
+<p>%s</p>
+</body>
+</html>
+""" % "LED value 0 OFF"
+    return response_template % body
+
+
+def switch():
+    
+    switch_pin = machine.Pin(5, machine.Pin.IN)
+    body = """<html>
+<body>
+<h1>Switch</h1>
+<p>%s</p>
+</body>
+</html>
+""" % "state: {}".format(switch_pin.value())
+    return response_template % body
+
+
+# routing dictionary
 handlers = {
     'time': time,
     'dummy': dummy,
+    'light_on': light_on,
+    'light_off': light_off,
+    'switch': switch
 }
+
 
 def main():
     s = socket.socket()
@@ -64,14 +110,37 @@ def main():
         client_s = res[0]
         client_addr = res[1]
         req = client_s.recv(4096)
-        print("Request:")
-        print(req)
+        # print("Request:")
+        # print(req)
 
         try:
             path = req.decode().split("\r\n")[0].split(" ")[1]
-            handler = handlers[path.strip('/').split('/')[0]]
+            print("path:\n", path)
+
+            # this condensed line below can be re-written
+            # handler = handlers[path.strip('/').split('/')[0]]
+
+            # so this will return an array of one item, like ['time'] or ['dummy']
+            # it only returns one item because it *has* to return an array, and
+            # it only has one item it can return for this app "/time", or "/dummy"
+            # if we had two items "/time/today/" it would return ['time', 'today']
+            commandArray = path.strip('/').split('/')
+
+            # the next line extracts the text command from the array.  There is only one
+            # item possible here, so the zero index is hard-coded:
+            command = commandArray[0]
+
+            # at this point command is just text, ie 'time'
+            # now use that text as the key in the handler's dictionary which returns
+            # a function pointer/method name to the associated method
+            handler = handlers[command]  # i.e. handlers['time']
+
+            # handler is now just a method/function pointer which can be called by adding ()
+            # the method returns text in the form of an html page
             response = handler()
+
         except KeyError:
+            # response = "eric says not working"
             response = response_404
         except Exception as e:
             response = response_500
@@ -81,5 +150,6 @@ def main():
 
         client_s.close()
         print()
+
 
 main()

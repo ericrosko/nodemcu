@@ -39,4 +39,3 @@ for connection in connections:
 
 if sta_if.isconnected():
     print("Connected as: {}".format(sta_if.ifconfig()[0]))
-
